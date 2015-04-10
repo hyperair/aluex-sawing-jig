@@ -1,82 +1,127 @@
 include <MCAD/units/metric.scad>
 use <MCAD/shapes/polyhole.scad>
-use <MCAD/array/along_curve.scad>
 
-slot_size = 5;
-length = 20;
+support_extrusion_length = 1900;
+support_extrusion_width = 40;
+support_extrusion_depth = 20;
+support_tslot_positions = [10, 30];
+
+cut_extrusion_length = 1900;
+cut_extrusion_width = 40;
+cut_extrusion_depth = 20;
+
 wall_thickness = 5;
 
-screwhole_size = slot_size + 0.3;
+jig_length = 50;
 
-profile_width = 20;
-clearance = 1;
+elevation = 11;
+clearance = 0.2;
 
-profile_width_multiplier = 2;
-profile_depth_multiplier = 1;
+saw_thickness = 2;
+saw_depth = 4;
 
-aluex_width = profile_width * profile_width_multiplier;
-aluex_depth = profile_width * profile_depth_multiplier - clearance;
+$fs = 0.4;
+$fa = 1;
 
-slot_depth = 1;
-
-module slot ()
+module tslot_screw ()
 {
-    linear_extrude (height = slot_depth)
-    square ([slot_size, length], center = true);
+    // screw hole
+    mirror (Z)
+    translate ([0, 0, -epsilon])
+    mcad_polyhole (d = 5.3, h = 100);
+
+    // cap screw head
+    mcad_polyhole (d = 8.53, h = 100);
 }
 
-module screwhole (center = true)
+module support_extrusion ()
 {
-    translate ([0, 0, center ? -500 : 0])
-    mcad_polyhole (d = screwhole_size, h = 1000);
+    cube ([
+            support_extrusion_length,
+            support_extrusion_width,
+            support_extrusion_depth
+        ]);
 }
 
-module place_horizontal_slot ()
+module cut_extrusion ()
 {
-    total_width = (profile_width_multiplier - 1) * profile_width;
-
-    mcad_linear_multiply (no = profile_width_multiplier,
-        separation = profile_width, axis = X)
-    translate ([-total_width / 2, 0, 0])
-    children ();
+    cube ([
+            cut_extrusion_length,
+            cut_extrusion_width,
+            cut_extrusion_depth
+        ]);
 }
 
-module place_vertical_slot ()
+module jig_screwholes ()
 {
-    mcad_linear_multiply (no = profile_depth_multiplier,
-        separation = profile_width, axis = Z)
-    translate ([0, 0, wall_thickness + profile_width / 2])
-    children ();
+    for (tslot_pos = support_tslot_positions + [1, 1] * wall_thickness)
+    for (l = [0.25, 0.75] * jig_length)
+    translate ([l, tslot_pos, 5])
+    tslot_screw ();
 }
 
-module sawing_jig ()
+module end_jig ()
 {
+    jig_width = (max (support_extrusion_width, cut_extrusion_width) +
+        wall_thickness * 2);
+    jig_depth = elevation + cut_extrusion_depth;
+
     difference () {
-        union () {
-            difference () {
-                linear_extrude (height = aluex_depth + wall_thickness)
-                square ([aluex_width + wall_thickness * 2, length], center = true);
+        cube ([jig_length, jig_width, jig_depth]);
 
-                translate ([0, 0, wall_thickness])
-                linear_extrude (height = aluex_depth + epsilon)
-                square ([aluex_width, length + epsilon * 2], center = true);
-            }
+        translate ([wall_thickness, wall_thickness + clearance / 2, elevation])
+        cube ([
+                jig_length,
+                cut_extrusion_width + clearance,
+                jig_depth
+            ]);
 
-            place_horizontal_slot ()
-            translate ([0, 0, wall_thickness - epsilon])
-            slot ();
-        }
-
-        place_horizontal_slot ()
-        translate ([0, 0, -epsilon])
-        screwhole ();
-
-        place_vertical_slot ()
-        rotate (90, Y)
-        translate ([0, 0, -5000])
-        mcad_polyhole (d = 5.3, h = 10000);
+        jig_screwholes ();
     }
 }
 
+module cutting_jig ()
+{
+    jig_base_width = (max (support_extrusion_width, cut_extrusion_width) +
+        wall_thickness * 2);
+    jig_depth = elevation + cut_extrusion_depth + 10;
 
-sawing_jig ();
+    jig_cross_arm_length = jig_base_width + 20;
+
+    difference () {
+        // base shape
+        cube ([jig_length, jig_base_width, jig_depth]);
+
+        // cross arm
+        translate ([-epsilon * 2, wall_thickness + clearance / 2, elevation])
+        cube ([
+                jig_length + wall_thickness * 2,
+                cut_extrusion_width + clearance,
+                jig_depth
+            ]);
+
+        jig_screwholes ();
+
+        // saw cutout
+        translate ([
+                jig_length / 2 - (saw_thickness + clearance) / 2,
+                -cut_extrusion_width * 2,
+                elevation - saw_depth
+            ])
+        cube ([
+                saw_thickness + clearance,
+                cut_extrusion_width * 4,
+                jig_depth
+            ]);
+    }
+}
+
+%support_extrusion ();
+%translate ([wall_thickness, 0, elevation + support_extrusion_depth])
+cut_extrusion ();
+
+translate ([0, -wall_thickness, support_extrusion_depth])
+end_jig ();
+
+translate ([250, -wall_thickness, support_extrusion_depth])
+cutting_jig ();
