@@ -18,7 +18,7 @@ jig_length = 50;
 elevation = 11;
 clearance = 0.2;
 
-saw_thickness = 2;
+saw_thickness = 1.1;
 saw_depth = 4;
 
 $fs = 0.4;
