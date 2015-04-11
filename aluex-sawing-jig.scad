@@ -23,6 +23,8 @@ saw_depth = 4;
 $fs = 0.4;
 $fa = 1;
 
+mode = "plate";               // or plate
+
 module tslot_screw ()
 {
     // screw hole
@@ -116,12 +118,20 @@ module cutting_jig ()
     }
 }
 
-%support_extrusion ();
-%translate ([wall_thickness, 0, elevation + support_extrusion_depth])
-cut_extrusion ();
+if (mode == "preview") {
+    %support_extrusion ();
+    %translate ([wall_thickness, 0, elevation + support_extrusion_depth])
+    cut_extrusion ();
 
-translate ([0, -wall_thickness, support_extrusion_depth])
-end_jig ();
+    translate ([0, -wall_thickness, support_extrusion_depth])
+    end_jig ();
 
-translate ([250, -wall_thickness, support_extrusion_depth])
-cutting_jig ();
+    translate ([250, -wall_thickness, support_extrusion_depth])
+    cutting_jig ();
+
+} else {
+    cutting_jig ();
+
+    translate ([jig_length + 5, 0, 0])
+    end_jig ();
+}
