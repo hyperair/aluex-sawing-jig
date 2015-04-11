@@ -9,6 +9,7 @@ support_tslot_positions = [10, 30];
 cut_extrusion_length = 1900;
 cut_extrusion_width = 40;
 cut_extrusion_depth = 20;
+cut_tslot_position = 10;
 
 wall_thickness = 5;
 
@@ -59,6 +60,11 @@ module jig_screwholes ()
     for (tslot_pos = support_tslot_positions + [1, 1] * wall_thickness)
     for (l = [0.25, 0.75] * jig_length)
     translate ([l, tslot_pos, 5])
+    tslot_screw ();
+
+    for (i = [0.25, 0.75])
+    translate ([i * jig_length, -epsilon, elevation + cut_tslot_position])
+    rotate (90, X)
     tslot_screw ();
 }
 
