@@ -71,7 +71,7 @@ module jig_screwholes ()
 module end_jig ()
 {
     jig_width = (max (support_extrusion_width, cut_extrusion_width) +
-        wall_thickness * 2);
+        clearance + wall_thickness * 2);
     jig_depth = elevation + cut_extrusion_depth;
 
     difference () {
@@ -91,7 +91,7 @@ module end_jig ()
 module cutting_jig ()
 {
     jig_base_width = (max (support_extrusion_width, cut_extrusion_width) +
-        wall_thickness * 2);
+        clearance + wall_thickness * 2);
     jig_depth = elevation + cut_extrusion_depth + 10;
 
     jig_cross_arm_length = jig_base_width + 20;
