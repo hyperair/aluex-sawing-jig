@@ -24,7 +24,7 @@ saw_depth = 4;
 $fs = 0.4;
 $fa = 1;
 
-mode = "preview";               // or plate
+mode = "preview";               // plate / preview / cutting / end
 
 module tslot_screw ()
 {
@@ -164,9 +164,14 @@ if (mode == "preview") {
     translate ([250, -wall_thickness, support_extrusion_depth])
     cutting_jig ();
 
-} else {
+} else if (mode == "plate") {
     cutting_jig ();
 
     translate ([jig_length + 5, 0, 0])
+    end_jig ();
+} else if (mode == "cutting") {
+    cutting_jig ();
+
+} else {
     end_jig ();
 }
