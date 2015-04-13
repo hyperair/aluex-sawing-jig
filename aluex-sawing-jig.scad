@@ -1,5 +1,6 @@
 include <MCAD/units/metric.scad>
 use <MCAD/shapes/polyhole.scad>
+use <MCAD/shapes/boxes.scad>
 
 support_extrusion_length = 1900;
 support_extrusion_width = 40;
@@ -78,6 +79,13 @@ module mirror_if (condition, axis)
     children ();
 }
 
+module sideways_rounded_box (size, radius)
+{
+    mirror (Z)
+    rotate (90, Y)
+    mcad_rounded_box (size = [size[2], size[1], size[0]], radius = radius, sidesonly = true);
+}
+
 module end_jig ()
 {
     jig_width = (max (support_extrusion_width, cut_extrusion_width) +
@@ -88,11 +96,14 @@ module end_jig ()
         cube ([jig_length, jig_width, jig_depth]);
 
         translate ([wall_thickness, wall_thickness + clearance / 2, elevation])
-        cube ([
+        sideways_rounded_box (
+            size = [
                 jig_length,
                 cut_extrusion_width + clearance,
                 jig_depth
-            ]);
+            ],
+            radius = 2
+        );
 
         jig_screwholes ();
     }
@@ -131,11 +142,14 @@ module cutting_jig ()
 
         // cross arm
         translate ([-epsilon * 2, wall_thickness + clearance / 2, elevation])
-        cube ([
+        sideways_rounded_box (
+            size = [
                 jig_length + wall_thickness * 2,
                 cut_extrusion_width + clearance,
                 jig_depth
-            ]);
+            ],
+            radius = 2
+        );
 
         jig_screwholes ();
 
