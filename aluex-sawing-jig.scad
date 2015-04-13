@@ -24,7 +24,7 @@ saw_depth = 4;
 $fs = 0.4;
 $fa = 1;
 
-mode = "plate";               // or plate
+mode = "preview";               // or plate
 
 module tslot_screw ()
 {
@@ -68,6 +68,16 @@ module jig_screwholes ()
     tslot_screw ();
 }
 
+module mirror_if (condition, axis)
+{
+    if (condition)
+    mirror (axis)
+    children ();
+
+    else
+    children ();
+}
+
 module end_jig ()
 {
     jig_width = (max (support_extrusion_width, cut_extrusion_width) +
@@ -98,7 +108,26 @@ module cutting_jig ()
 
     difference () {
         // base shape
-        cube ([jig_length, jig_base_width, jig_depth]);
+        union () {
+            cube ([jig_length, jig_base_width, jig_depth]);
+
+            for (i = [1, -1])
+            translate ([0, i < 0 ? jig_base_width : 0, 0])
+            mirror_if (i < 0, Y)
+            translate ([0, epsilon, 0])
+            rotate (90, X)
+            mirror (X)
+            rotate (-90, Y)
+            linear_extrude (height = jig_length)
+            difference () {
+                fillet_r = wall_thickness;
+
+                square ([fillet_r, fillet_r + elevation]);
+
+                translate ([fillet_r, fillet_r + elevation])
+                circle (r = fillet_r);
+            }
+        }
 
         // cross arm
         translate ([-epsilon * 2, wall_thickness + clearance / 2, elevation])
