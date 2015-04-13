@@ -34,7 +34,7 @@ module tslot_screw ()
     mcad_polyhole (d = 5.3, h = 100);
 
     // cap screw head
-    mcad_polyhole (d = 8.53, h = 100);
+    mcad_polyhole (d = 8.6, h = 100);
 }
 
 module support_extrusion ()
